@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -55,6 +56,7 @@ func (this *Server) Handler(conn net.Conn) {
 	//此时该客户端已成功与服务端建立连接，将该客户端加入在线用户列表中
 	user := NewUser(conn, this)
 	user.Online()
+	isAlive := make(chan bool)
 	// 处理用户发过来的消息
 	go func() {
 		for {
@@ -68,10 +70,28 @@ func (this *Server) Handler(conn net.Conn) {
 			}
 			msg := string(buf[:n-1])
 			user.DoMessage(msg)
+
+			isAlive <- true //	标记该用户是活跃的
 		}
 	}()
-	//阻塞该handler
-	select {}
+
+	for {
+		select {
+		case <-isAlive:
+			//do nothing
+		case <-time.After(time.Second * 10):
+			//剔除该用户
+			user.SendMsg("You are forced offline because of the long slience")
+			//销毁相关的资源
+			close(user.C)
+			conn.Close()
+
+			this.Lock.Lock()
+			delete(this.OnlineMap, user.Name)
+			this.Lock.Unlock()
+			return
+		}
+	}
 }
 
 func (this *Server) BroadCast(user *User, msg string) {
