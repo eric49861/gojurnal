@@ -9,9 +9,18 @@ go语言学习之旅
 - 如何创建goroutine以及如何使用channel进行协程间通信
 - 网络通信
 - 项目依赖管理(go modules)
+## 项目功能列表
+1. 用户的上下线广播
+2. 群聊
+3. 查看当前在线用户列表
+4. 自定义用户名的功能
+5. 长时间不操作自动剔除
 
 ## 编译指令
 > go build -o ./out/server.exe main.go server.go user.go
 
 ## 运行服务端
 > ./out/server.exe
+
+##  客户端
+目前不包含go语言实现的客户端，使用nc命令模拟socket客户端即可，后期会补上
