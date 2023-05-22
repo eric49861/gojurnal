@@ -82,6 +82,22 @@ func (this *User) DoMessage(msg string) {
 			this.server.OnlineMap[msg[7:]] = this
 			this.server.Lock.Unlock()
 		}
+	} else if len(msg) > 4 && strings.Compare(msg[:3], "to|") == 0 {
+		//解析私聊的对象
+		format := strings.Split(msg, "|")
+		name := format[1]
+		if name == "" {
+			this.SendMsg("incorrect format\nFor example: to|username|msg")
+			return
+		}
+		//通过用户名获取user
+		user, ok := this.server.OnlineMap[name]
+		if !ok {
+			this.SendMsg("Server hasn't user named " + name)
+			return
+		}
+		//调用user的SendMsg方法转发消息
+		user.SendMsg(this.Name + ":" + format[2] + "(private)")
 	} else {
 		this.server.BroadCast(this, msg)
 	}
