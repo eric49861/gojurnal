@@ -57,16 +57,18 @@ func (this *Server) Handler(conn net.Conn) {
 	user.Online()
 	// 处理用户发过来的消息
 	go func() {
-		buf := make([]byte, 1024)
-		n, err := conn.Read(buf)
-		if n == 0 {
-			user.Offline()
-			return
-		} else if err != nil && err != io.EOF {
-			return
+		for {
+			buf := make([]byte, 1024)
+			n, err := conn.Read(buf)
+			if n == 0 {
+				user.Offline()
+				return
+			} else if err != nil && err != io.EOF {
+				return
+			}
+			msg := string(buf[:n-1])
+			user.DoMessage(msg)
 		}
-		msg := string(buf[:n-1])
-		user.DoMessage(msg)
 	}()
 	//阻塞该handler
 	select {}
@@ -74,7 +76,7 @@ func (this *Server) Handler(conn net.Conn) {
 
 func (this *Server) BroadCast(user *User, msg string) {
 	//  通过广播管道将消息广播给所有的在线用户
-	sendMsg := "[" + user.Addr.String() + " " + msg + "]"
+	sendMsg := "[" + user.Addr.String() + "]" + user.Name + ":" + msg
 	this.Message <- sendMsg
 }
 
