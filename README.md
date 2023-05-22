@@ -9,3 +9,9 @@ go语言学习之旅
 - 如何创建goroutine以及如何使用channel进行协程间通信
 - 网络通信
 - 项目依赖管理(go modules)
+
+## 编译指令
+> go build -o ./out/server.exe main.go server.go user.go
+
+## 运行服务端
+> ./out/server.exe
