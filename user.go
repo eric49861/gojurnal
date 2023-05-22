@@ -1,8 +1,12 @@
 package main
 
-import "net"
+import (
+	"net"
+	"strings"
+)
 
 type User struct {
+	Name string
 	Addr net.Addr
 	C    chan string
 	Conn net.Conn
@@ -13,6 +17,7 @@ type User struct {
 func NewUser(conn net.Conn, server *Server) *User {
 
 	user := &User{
+		Name:   conn.RemoteAddr().String(),
 		Addr:   conn.RemoteAddr(),
 		C:      make(chan string),
 		Conn:   conn,
@@ -33,7 +38,7 @@ func (this *User) CListener() {
 // 用户的上线业务
 func (this *User) Online() {
 	this.server.Lock.Lock()
-	this.server.OnlineMap[this.Addr.String()] = this
+	this.server.OnlineMap[this.Name] = this
 	this.server.Lock.Unlock()
 
 	//广播消息
@@ -42,14 +47,42 @@ func (this *User) Online() {
 
 //用户的下线业务
 func (this *User) Offline() {
-	this.server.BroadCast(this, "["+this.Addr.String()+" Offline]")
+	this.server.BroadCast(this, "Offline")
 	//将该用户从Onlinemap中移除
 	this.server.Lock.Lock()
-	delete(this.server.OnlineMap, this.Addr.String())
+	delete(this.server.OnlineMap, this.Name)
 	this.server.Lock.Unlock()
+}
+
+//给该user对应的客户端发送消息
+func (this *User) SendMsg(msg string) {
+	this.Conn.Write([]byte(msg + "\n"))
 }
 
 // 处理用户消息的功能
 func (this *User) DoMessage(msg string) {
-	this.server.BroadCast(this, msg)
+	if strings.Compare(msg, "who") == 0 {
+		this.server.Lock.Lock()
+		this.SendMsg("--------------Online Users Table--------------")
+		for _, u := range this.server.OnlineMap {
+			onlineMsg := "             [" + u.Addr.String() + "]"
+			this.SendMsg(onlineMsg)
+		}
+		this.SendMsg("----------------------------------------------")
+		this.server.Lock.Unlock()
+	} else if len(msg) > 7 && strings.Compare(msg[:7], "rename|") == 0 {
+		_, ok := this.server.OnlineMap[msg[7:]]
+		if ok {
+			this.SendMsg("rename failed, because name has been occupied")
+		} else {
+			this.SendMsg("rename successfully")
+			this.server.Lock.Lock()
+			delete(this.server.OnlineMap, this.Name)
+			this.Name = msg[7:]
+			this.server.OnlineMap[msg[7:]] = this
+			this.server.Lock.Unlock()
+		}
+	} else {
+		this.server.BroadCast(this, msg)
+	}
 }
