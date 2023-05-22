@@ -15,6 +15,7 @@ go语言学习之旅
 3. 查看当前在线用户列表
 4. 自定义用户名的功能
 5. 长时间不操作自动剔除
+6. 私聊功能
 
 ## 编译指令
 > go build -o ./out/server.exe main.go server.go user.go
