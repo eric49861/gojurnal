@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -52,14 +53,21 @@ func (this *Server) Start() {
 //处理连接
 func (this *Server) Handler(conn net.Conn) {
 	//此时该客户端已成功与服务端建立连接，将该客户端加入在线用户列表中
-	user := NewUser(conn)
-	this.Lock.Lock()
-	this.OnlineMap[user.Addr.String()] = user
-	this.Lock.Unlock()
-
-	//广播消息
-	this.BroadCast(user, "Online")
-
+	user := NewUser(conn, this)
+	user.Online()
+	// 处理用户发过来的消息
+	go func() {
+		buf := make([]byte, 1024)
+		n, err := conn.Read(buf)
+		if n == 0 {
+			user.Offline()
+			return
+		} else if err != nil && err != io.EOF {
+			return
+		}
+		msg := string(buf[:n-1])
+		user.DoMessage(msg)
+	}()
 	//阻塞该handler
 	select {}
 }
