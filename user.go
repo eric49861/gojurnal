@@ -65,7 +65,7 @@ func (this *User) DoMessage(msg string) {
 		this.server.Lock.Lock()
 		this.SendMsg("--------------Online Users Table--------------")
 		for _, u := range this.server.OnlineMap {
-			onlineMsg := "             [" + u.Addr.String() + "]"
+			onlineMsg := "             [" + u.Name + "]"
 			this.SendMsg(onlineMsg)
 		}
 		this.SendMsg("----------------------------------------------")
@@ -97,7 +97,7 @@ func (this *User) DoMessage(msg string) {
 			return
 		}
 		//调用user的SendMsg方法转发消息
-		user.SendMsg(this.Name + ":" + format[2] + "(private)")
+		user.SendMsg("(private)" + this.Name + ":" + format[2])
 	} else {
 		this.server.BroadCast(this, msg)
 	}
