@@ -79,7 +79,7 @@ func (this *Server) Handler(conn net.Conn) {
 		select {
 		case <-isAlive:
 			//do nothing
-		case <-time.After(time.Second * 10):
+		case <-time.After(time.Second * 100):
 			//剔除该用户
 			user.SendMsg("You are forced offline because of the long slience")
 			//销毁相关的资源
