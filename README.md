@@ -24,4 +24,16 @@ go语言学习之旅
 > ./out/server.exe
 
 ##  客户端
-目前不包含go语言实现的客户端，使用nc命令模拟socket客户端即可，后期会补上
+
+### 编译客户端代码
+> go build -o ./out/client.exe client.go
+
+## 运行
+运行前需要修改服务端的IP地址和监听的端口号
+
+1. 首先运行服务端
+   > ./out/server.exe
+2. 运行客户端
+   > ./out/client.exe ip 服务端IP地址 port 端口号
+
+服务端的ip地址和端口号并不是必须的，但是需要修改默认值
